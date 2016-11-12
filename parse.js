@@ -6,9 +6,10 @@ var mysql = require('mysql')
 var fs = require('fs')
 var Ftp = require('ftp')
 var cheerio = require('cheerio')
-var Promise = require("bluebird")
+var Promise = require('bluebird')
 var request = Promise.promisifyAll(require('request'))
-var iconv = require('iconv-lite');
+var iconv = require('iconv-lite')
+var childProcess = require('child_process')
 
 var mySqlConnection = mysql.createConnection({
   host     : 'db14.freehost.com.ua',
@@ -17,61 +18,119 @@ var mySqlConnection = mysql.createConnection({
   database : 'malyniak_carpng'
 })
 
-var src = 'https://vk.com/kharkovgo'
+var url = 'http://vk.com/kharkovgo'
 
-return new Promise((resolve, reject) => {
-  let options = {
-    uri: src,
-    encoding: null,
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36'
-    }
-  }
-  request(options, function (err, response, body) {
-    var converted = iconv.decode(body, 'win1251');
-  	// converted = iconv.encode(body, 'utf8');
-  	//fs.writeFile('vk.html', converted)
-    let $ = cheerio.load(converted)
-    console.log($('body').html());
+var childArgs = [
+  'phantomjs-script.js',
+  [url]
+]
 
-    $('._post.post.page_block:not(.post_fixed)').each((i, el) => {
-        var allHtml = $(el).html();
-        // if (allHtml.match('Когда'))
+new Promise((resolve, reject) => {
+  // childProcess.execFile('./phantomjs/bin/phantomjs', childArgs, function(err, stdout, stderr) {
+  //   resolve(stdout)
+  // })
+  resolve(fs.readFileSync('vk.html', 'utf8'))
+})
+.then(function (content) {
+  console.log('done parsing!')
+  let $ = cheerio.load(content, {decodeEntities: false})
 
-        var title = $(el).find('.wall_post_text .mem_link').first().html()
-        var text = $(el).find('.wall_post_text').html()
-        var thumbs = $(el).find('.page_post_sized_thumbs a').html()
-        text = text.replace(/<a.*?mem_link.*?\/a>/g, '')
-        text = text.replace(/<a.*?wall_post_more.*?\/a>/g, '')
-        text = text.replace(/<br.*?>/g, '\n')
-        
-        var split = text.split('\nКогда:')
+  $('._post.post.page_block:not(.post_fixed)').each((i, el) => {
+      var allHtml = $(el).html()
+      // if (allHtml.match('Когда'))
 
-        if (split.length !== 2) return
+      var title = $(el).find('.wall_post_text .mem_link').first().html()
+      var text = $(el).find('.wall_post_text').html()
+      var thumbs = $(el).find('.page_post_sized_thumbs a').html()
+      text = text.replace(/<a.*?mem_link.*?\/a>/g, '')
+      text = text.replace(/<a.*?wall_post_more.*?\/a>/g, '')
+      text = text.replace(/<br.*?>/g, '\n')
+      
+      var split = text.split('\nКогда:')
 
-        var intro = split[0]
-        var info = 'Когда:' + split[1]
-        var arr = info.split('\n')
-        var detailsKeys = {
-          'where': 'Когда:',
-          'when': 'Где:',
-          'price': 'Цена:',
-          'address': 'Адрес:'
-        }
-        var details = {}
+      if (split.length !== 2) return
 
-        _.keys(detailsKeys).forEach(function (k) {
-          arr.forEach(function (str) {
-            var s = str.split(detailsKeys[k])
-            console.log(s)
-            details[k] = s.length == 2 ? s[2] : ''
-          })
+      var intro = split[0]
+      var info = 'Когда:' + split[1]
+      var arr = info.split('\n')
+      var detailsKeys = {
+        'time': 'Время:',
+        'where': 'Когда:',
+        'when': 'Где:',
+        'price': 'Цена:',
+        'address': 'Адрес:'
+      }
+      var details = {}
+
+      _.keys(detailsKeys).forEach(function (k) {
+        arr.forEach(function (str) {
+          var s = str.split(detailsKeys[k])
+          if (s.length == 2) {
+            details[k] = s[1]
+          }
         })
-        
-        console.log(details)
-    })
+      })
+      
+      console.log(details)
+      console.log('======================')
   })
 })
+
+
+
+// return new Promise((resolve, reject) => {
+//   let options = {
+//     uri: src,
+//     encoding: null,
+//     headers: {
+//       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0 WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36'
+//     }
+//   }
+//   request(options, function (err, response, body) {
+//     var converted = iconv.decode(body, 'win1251')
+//   	// converted = iconv.encode(body, 'utf8')
+//   	//fs.writeFile('vk.html', converted)
+//     let $ = cheerio.load(converted)
+//     console.log($('body').html())
+
+//     $('._post.post.page_block:not(.post_fixed)').each((i, el) => {
+//         var allHtml = $(el).html()
+//         // if (allHtml.match('Когда'))
+
+//         var title = $(el).find('.wall_post_text .mem_link').first().html()
+//         var text = $(el).find('.wall_post_text').html()
+//         var thumbs = $(el).find('.page_post_sized_thumbs a').html()
+//         text = text.replace(/<a.*?mem_link.*?\/a>/g, '')
+//         text = text.replace(/<a.*?wall_post_more.*?\/a>/g, '')
+//         text = text.replace(/<br.*?>/g, '\n')
+        
+//         var split = text.split('\nКогда:')
+
+//         if (split.length !== 2) return
+
+//         var intro = split[0]
+//         var info = 'Когда:' + split[1]
+//         var arr = info.split('\n')
+//         var detailsKeys = {
+//           'where': 'Когда:',
+//           'when': 'Где:',
+//           'price': 'Цена:',
+//           'address': 'Адрес:'
+//         }
+//         var details = {}
+
+//         _.keys(detailsKeys).forEach(function (k) {
+//           arr.forEach(function (str) {
+//             var s = str.split(detailsKeys[k])
+//             console.log(s)
+//             details[k] = s.length == 2 ? s[2] : ''
+//           })
+//         })
+        
+//         console.log(details)
+//     })
+//   })
+// })
 
 
 // let $ = cheerio.load(fs.readFileSync('./data/vk.html', {encoding: 'utf-8'}))
