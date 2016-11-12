@@ -1,0 +1,1 @@
+git pull && npm install && node c:/node-png/bin/www
