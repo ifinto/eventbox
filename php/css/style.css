@@ -1,0 +1,44 @@
+body {
+  font-family: 'Noto Serif', serif;
+}
+.grid-item-wrapper {
+  width: 12.5%;
+  float: left;
+  position: relative;
+}
+.grid-item-wrapper.site-logo {
+  background: #000;
+}
+.grid-item-wrapper.site-logo span {
+  display: block;
+  padding: 90px 0 0;
+  font-family: 'Bungee', cursive;
+  font-size: 30px;
+  color: #fff;
+  text-align: center;
+}
+.grid-item-wrapper .cover {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 10px;
+  background: #000;
+  color: #fff;
+  opacity: 0;
+}
+.grid-item-wrapper .cover.on {
+  opacity: 1;
+}
+.grid-item {
+  position: relative;
+  height: 0;
+  padding-bottom: 133%;
+  background-size: cover;
+}
+.grid-item:hover {
+  -webkit-filter: saturate(1.4);
+          filter: saturate(1.4);
+}
