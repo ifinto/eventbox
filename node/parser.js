@@ -91,10 +91,9 @@ new Promise((resolve, reject) => {
   post.date = new Date().toISOString().slice(0, 19).replace('T', ' ')
   var query = insertSqlQuery('wp_posts', {
     'post_author':        1,
-    'post_date':          post.date,
     'post_content':       escapeQuotes(post.text),
     'post_title':         escapeQuotes(post.title),
-    'post_status':        'publish',
+    'post_status':        'new',
     'post_name':          post.guid,
     'post_type':          'post'
   })
