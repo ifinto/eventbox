@@ -11,6 +11,8 @@ var request = Promise.promisifyAll(require('request'))
 var iconv = require('iconv-lite')
 var childProcess = require('child_process')
 
+var unique_text = require('./modules/unique_text')
+
 var mySqlConnection = mysql.createConnection({
   host     : 'db14.freehost.com.ua',
   user     : 'malyniak_ebox',
@@ -18,94 +20,108 @@ var mySqlConnection = mysql.createConnection({
   database : 'malyniak_ebox'
 })
 
-// var url = 'http://vk.com/kharkovgo'
-var url = 'https://vk.com/rating_kh'
-
-var childArgs = [
-  'phantomjs-script.js',
-  [url]
-]
+// 'http://vk.com/kharkovgo',
+// 'http://vk.com/rating_kh',
+var dbShingles = []
 
 new Promise((resolve, reject) => {
-  // childProcess.execFile('./phantomjs/bin/phantomjs', childArgs, function(err, stdout, stderr) {
-  //   if (err) console.log('Error at phantom.js: ', err);
-  //   resolve(stdout)
-  // })
-  resolve(fs.readFileSync('vk.html', 'utf8'))
-}).then(function (content) {
-  console.log('done parsing!')
-  var content = fs.readFileSync('vk.html')
-  let $ = cheerio.load(content, {decodeEntities: false})
-  console.log('length', $('._post.post.page_block:not(.post_fixed)').length);
-  var posts = []
-  $('._post.post.page_block:not(.post_fixed)').each((i, el) => {
-    var allHtml = $(el).html()
-    var post = {};
-    post.title = $(el).find('.wall_post_text .mem_link').first().html()
-    post.thumbs = $(el).find('.page_post_sized_thumbs a').html()
-    var text = $(el).find('.wall_post_text').html()
-    text = text.replace(/<img.*?>/g, '')
-     .replace(/<a.*?mem_link.*?\/a>/g, '')
-     .replace(/<a.*?wall_post_more.*?\/a>/g, '')
-     .replace(/<a href="\/away.php\?to=(.*?)&.*?"/g, '<a href="$1"')
-     .replace(/<span style="display: none">/g, '')
-     .replace(/<a href="\/feed.*/g, '')
-     .replace(/onclick="return mentionClick\(this, event\)"/g, '')
-     .replace(/onmouseover="mentionOver\(this\)"/g, '')
-     .replace(/mention_id=".*?"/g, '')
-     .replace(/<br.*?>/g, '\n')
-
-    var matches = text.match(/((.|\n)*)((\Время:|\Когда:|\Цена:)(.|\n)*)/im)
-
-    if (!!matches) {
-      post.text = matches[1]
-      var arr = matches[3].split('\n')
-      var detailsKeys = {
-        'time':    /Время:(.*)/i,
-        'where':   /Когда:(.*)/i,
-        'when':    /Где:(.*)/i,
-        'price':   /Цена:(.*)/i,
-        'address': /Адрес:(.*)/i
-      }
-      var details = {}
-
-      _.keys(detailsKeys).forEach(function (k) {
-        arr.forEach(function (str) {
-          var m = str.match(detailsKeys[k])
-          if (m && m.length >= 2) {
-            details[k] = m[1].trim()
-          }
-        })
-      })
-    } else {
-      post.text = text
-    }
-
-    posts.push(post)
+  var Q = 'SELECT ID, post_shingles from posts'
+  mySqlConnection.query(Q, (err, rows, fields) => {
+    dbShingles = rows
+    resolve()
   })
-  return posts
-}).mapSeries(function (post) {
-  post.title = post.title || ''
-  post.guid = Math.floor(Math.random() * 1000000000)
-  post.name = post.title.replace(/\s+/g, '-').toLowerCase() + '-' + post.guid
-  post.date = new Date().toISOString().slice(0, 19).replace('T', ' ')
-  var query = insertSqlQuery('wp_posts', {
-    'post_author':        1,
-    'post_content':       escapeQuotes(post.text),
-    'post_title':         escapeQuotes(post.title),
-    'post_status':        'new',
-    'post_name':          post.guid,
-    'post_type':          'post'
-  })
+}).then(function () {
   return new Promise((resolve, reject) => {
-    mySqlConnection.query(query, function(err, rows, fields) {
-      if (err) throw err
-      console.log('MySQL query success; rows: ', rows.affectedRows)
-      resolve()
+    var Q = 'SELECT * from locations'
+    mySqlConnection.query(Q, (err, rows, fields) => {
+      resolve(rows)
     })
   })
-})
+}).then(function (locations) {
+  return new Promise((resolve, reject) => {
+    var Q = 'SELECT * from sources'
+    mySqlConnection.query(Q, (err, rows, fields) => {
+      var sources = rows.map((row) => {
+        return Object.assign({}, row, {
+          location: _.findWhere(locations, {ID: row.locationID})
+        })
+      })
+      resolve(sources)
+    })
+  })
+}).mapSeries(function (source) {
+  console.log('source', source)
+  return new Promise((resolve, reject) => {
+    childProcess.execFile('./phantomjs/bin/phantomjs', ['phantomjs-script.js', [source.url]], function(err, stdout, stderr) {
+      if (err) console.log('Error at phantom.js: ', err);
+      resolve(stdout)
+    })
+    // resolve(fs.readFileSync('vk.html', 'utf8'))
+  }).then(function (content) {
+    console.log('done parsing!')
+    var content = fs.readFileSync('vk.html')
+    let $ = cheerio.load(content, {decodeEntities: false})
+    var posts = []
+    $('._post.post.page_block:not(.post_fixed)').each((i, el) => {
+      var allHtml = $(el).html()
+      var post = {};
+      post.title = $(el).find('.wall_post_text .mem_link').first().html()
+      post.thumbs = $(el).find('.page_post_sized_thumbs a').html()
+      var text = $(el).find('.wall_post_text').html()
 
+      if (!passRegexContent(text, source.regexps)) {
+        console.log('regex not passed')
+        return
+      }
+
+      text = cleanVkText(text)
+      var details = getVkDetails(text)
+
+      var isUnique = _.find(dbShingles, (sh) => {
+        var guess = unique_text.getUniqueness(text, sh.post_shingles) > 0.5
+        if (guess) console.log('is duplicate of post ID =', sh.ID)
+        return guess
+      })
+
+      if (isUnique) return
+
+      post.text = text
+      posts.push(post)
+    })
+    return posts
+  }).mapSeries(function (post) {
+    console.log('passed reject, post text:', post.text)
+    console.log('=====================')
+    post.title = post.title || ''
+    post.guid = Math.floor(Math.random() * 1000000000)
+    post.name = post.title.replace(/\s+/g, '-').toLowerCase() + '-' + post.guid
+    post.date = new Date().toISOString().slice(0, 19).replace('T', ' ')
+    post.shingles = unique_text.generateShingles(post.text)
+
+    var query = insertSqlQuery('posts', {
+      'post_author':        1,
+      'post_content':       escapeQuotes(post.text),
+      'post_title':         escapeQuotes(post.title),
+      'post_status':        'new',
+      'post_name':          post.guid,
+      'post_type':          'post',
+      'post_shingles':      post.shingles,
+      'post_date_added':    'NOW()'
+    })
+
+    return new Promise((resolve, reject) => {
+      mySqlConnection.query(query, function(err, rows, fields) {
+        if (err) throw err
+        console.log('MySQL query success; rows: ', rows.affectedRows)
+        resolve()
+      })
+    })
+  })
+
+}).then(function (content) {
+  console.log('DONE!')
+  process.exit()
+})
 function insertNewPost() {
 }
 
@@ -123,3 +139,50 @@ function insertSqlQuery(table, params) {
 function escapeQuotes(str) {
   return str.replace(/'/g, "\\$&");
 } 
+
+function getVkDetails(text) {
+  var details = {}
+  var matches = text.match(/((.|\n)*)((\Время:|\Когда:|\Цена:)(.|\n)*)/im)
+
+  if (!!matches) {
+    var arr = matches[3].split('\n')
+    var detailsKeys = {
+      'time':    /Время:(.*)/i,
+      'where':   /Когда:(.*)/i,
+      'when':    /Где:(.*)/i,
+      'price':   /Цена:(.*)/i,
+      'address': /Адрес:(.*)/i
+    }
+
+    _.keys(detailsKeys).forEach(function (k) {
+      arr.forEach(function (str) {
+        var m = str.match(detailsKeys[k])
+        if (m && m.length >= 2) {
+          details[k] = m[1].trim()
+        }
+      })
+    })
+  }
+  return details
+}
+
+function cleanVkText(text) {
+  return text.replace(/<img.*?>/g, '')
+   .replace(/<a.*?mem_link.*?\/a>/g, '')
+   .replace(/<a.*?wall_post_more.*?\/a>/g, '')
+   .replace(/<a href="\/away.php\?to=(.*?)&.*?"/g, '<a href="$1"')
+   .replace(/<span style="display: none">/g, '')
+   .replace(/<a href="\/feed.*/g, '')
+   .replace(/onclick="return mentionClick\(this, event\)"/g, '')
+   .replace(/onmouseover="mentionOver\(this\)"/g, '')
+   .replace(/mention_id=".*?"/g, '')
+   .replace(/<br.*?>/g, '\n')
+}
+
+function passRegexContent(text, regs) {
+  var found = regs.find((reg) => {
+    var regEx = new RegExp(reg)
+    return !!text.match(regEx)
+  })
+  return !!found
+}
