@@ -20,9 +20,8 @@ var mySqlConnection = mysql.createConnection({
   database : 'malyniak_ebox'
 })
 
-// 'http://vk.com/kharkovgo',
-// 'http://vk.com/rating_kh',
 var dbShingles = []
+var globalRegExps = ['[0-2]d[:.][0-5]d','сегодня','завтра']
 
 new Promise((resolve, reject) => {
   var Q = 'SELECT ID, post_shingles from posts'
@@ -41,12 +40,7 @@ new Promise((resolve, reject) => {
   return new Promise((resolve, reject) => {
     var Q = 'SELECT * from sources'
     mySqlConnection.query(Q, (err, rows, fields) => {
-      var sources = rows.map((row) => {
-        return Object.assign({}, row, {
-          location: _.findWhere(locations, {ID: row.locationID})
-        })
-      })
-      resolve(sources)
+      resolve(rows)
     })
   })
 }).mapSeries(function (source) {
@@ -67,9 +61,14 @@ new Promise((resolve, reject) => {
       var post = {};
       post.title = $(el).find('.wall_post_text .mem_link').first().html()
       post.thumbs = $(el).find('.page_post_sized_thumbs a').html()
+      var sourcePublished = $(el).find('.rel_date').html()
+      console.log(sourcePublished);return
+      if (!!sourcePublished) {
+        post.source_published = convertPublishedDate(sourcePublished)
+      }
       var text = $(el).find('.wall_post_text').html()
 
-      if (!passRegexContent(text, source.regexps)) {
+      if (!passRegexContent(text, globalRegExps)) {
         console.log('regex not passed')
         return
       }
@@ -97,16 +96,19 @@ new Promise((resolve, reject) => {
     post.name = post.title.replace(/\s+/g, '-').toLowerCase() + '-' + post.guid
     post.date = new Date().toISOString().slice(0, 19).replace('T', ' ')
     post.shingles = unique_text.generateShingles(post.text)
+    post.locationID = source.locationID || null
 
     var query = insertSqlQuery('posts', {
-      'post_author':        1,
-      'post_content':       escapeQuotes(post.text),
-      'post_title':         escapeQuotes(post.title),
-      'post_status':        'new',
-      'post_name':          post.guid,
-      'post_type':          'post',
-      'post_shingles':      post.shingles,
-      'post_date_added':    'NOW()'
+      'post_author':           1,
+      'post_content':          escapeQuotes(post.text),
+      'post_title':            escapeQuotes(post.title),
+      'post_status':           'new',
+      'post_name':             post.guid,
+      'post_type':             'post',
+      'post_shingles':         post.shingles,
+      'post_date_added':       'NOW()',
+      'post_source_published': post.source_published,
+      'post_location':         post.locationID
     })
 
     return new Promise((resolve, reject) => {
@@ -133,7 +135,9 @@ function insertSqlQuery(table, params) {
     headers.push('`' +key +'`')
     values.push('\'' +params[key] +'\'')
   })
-  return 'INSERT INTO `' + table + '` ('+ headers.join(',') +') VALUES ('+ values.join(',') +')'
+  var query = 'INSERT INTO `' + table + '` ('+ headers.join(',') +') VALUES ('+ values.join(',') +')'
+  query = query.replace('\'NOW()\'', 'NOW()')
+  return query
 }    
 
 function escapeQuotes(str) {
@@ -185,4 +189,25 @@ function passRegexContent(text, regs) {
     return !!text.match(regEx)
   })
   return !!found
+}
+
+function convertPublishedDate(str) {
+  var months = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек']
+  var date = new Date()
+  date.setHours(0,0,0,0)
+  var splitted = str.split(' в ')
+  if (splitted.length === 1) return
+  if (!!splitted[0].match('вчера')) {
+    date = new Date(date.getTime() - 86400000)
+  } else {
+    var s = splitted[0].split(' ')
+    date.setDate(s[0])
+    date.setMonth(months.indexOf(s[1]))
+  }
+
+  var t = splitted[1].split(':')
+  date.setHours(t[0])
+  date.setMinutes(t[1])
+
+  return date
 }
