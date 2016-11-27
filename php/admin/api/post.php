@@ -10,7 +10,8 @@ if ($mysqli->connect_error) {
 $mysqli->set_charset("utf8");
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-  $sql = "SELECT *, min(ID) FROM posts WHERE post_status='new'";
+  $post_status = $_GET["post_status"];
+  $sql = "SELECT *, min(ID) FROM posts WHERE post_status='". $post_status ."'";
   $result = $mysqli->query($sql);
   if ($result) {
     header( 'Content-Type: application/json' );
@@ -22,13 +23,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
 if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
   $_PUT = json_decode(file_get_contents("php://input"));
-    $post_id  = $_PUT->ID;
+  $post_id  = $_PUT->ID;
   $post_content  = $_PUT->post_content;
   $post_date     = $_PUT->post_date;
   $post_location = $_PUT->post_location;
   $post_status   = $_PUT->post_status;
 
-  $sql = "UPDATE posts SET post_content='$post_content', post_content='$post_content', post_content='$post_content', post_status='$post_status', post_location='$post_location' WHERE id=$post_id";
+  $sql = "UPDATE posts SET post_date='$post_date', post_content='$post_content', post_content='$post_content', post_content='$post_content', post_status='$post_status', post_location='$post_location' WHERE id=$post_id";
   $result = $mysqli->query($sql);
   if ($result) {
     header("HTTP/1.1 200 OK");

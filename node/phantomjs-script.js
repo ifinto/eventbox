@@ -32,7 +32,6 @@ page.open(url, function(status) {
     })
   }).then(function () {
     fs.write('vk.html', page.content, 'w')
-    system.stdout.write(page.content)
     phantom.exit()
   })
 })

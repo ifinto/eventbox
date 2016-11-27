@@ -1,5 +1,5 @@
 define([
-	'marionette',
+  'marionette',
   'views/MainView'
 ], function(Marionette, MainView) {
   return Marionette.Application.extend({

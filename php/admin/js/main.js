@@ -6,7 +6,9 @@ require.config({
     underscore: 'vendor/underscore',
     'backbone.radio': 'vendor/backbone.radio',
     backbone: 'vendor/backbone',
-    marionette: 'vendor/backbone.marionette'
+    marionette: 'vendor/backbone.marionette',
+    wickedpicker: 'vendor/wickedpicker',
+    dateformat: 'vendor/dateformat'
   },
   shim: {
     app: {
@@ -27,7 +29,7 @@ require.config({
     underscore: {
       exports: '_'
     },
-    'jquery-ui': ['jquery']
+    wickedpicker: ['jquery']
   }
 });
 

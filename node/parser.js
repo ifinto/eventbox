@@ -10,6 +10,7 @@ var Promise = require('bluebird')
 var request = Promise.promisifyAll(require('request'))
 var iconv = require('iconv-lite')
 var childProcess = require('child_process')
+var dateFormat = require('dateformat')
 
 var unique_text = require('./modules/unique_text')
 
@@ -59,10 +60,11 @@ new Promise((resolve, reject) => {
     $('._post.post.page_block:not(.post_fixed)').each((i, el) => {
       var allHtml = $(el).html()
       var post = {};
+      post.source_url = source.url +'?w=wall'+ $(el).attr('data-post-id')
+      console.log('post.source_url', post.source_url)
       post.title = $(el).find('.wall_post_text .mem_link').first().html()
       post.thumbs = $(el).find('.page_post_sized_thumbs a').html()
       var sourcePublished = $(el).find('.rel_date').html()
-      console.log(sourcePublished);return
       if (!!sourcePublished) {
         post.source_published = convertPublishedDate(sourcePublished)
       }
@@ -72,10 +74,7 @@ new Promise((resolve, reject) => {
         console.log('regex not passed')
         return
       }
-
       text = cleanVkText(text)
-      var details = getVkDetails(text)
-
       var isUnique = _.find(dbShingles, (sh) => {
         var guess = unique_text.getUniqueness(text, sh.post_shingles) > 0.5
         if (guess) console.log('is duplicate of post ID =', sh.ID)
@@ -89,7 +88,6 @@ new Promise((resolve, reject) => {
     })
     return posts
   }).mapSeries(function (post) {
-    console.log('passed reject, post text:', post.text)
     console.log('=====================')
     post.title = post.title || ''
     post.guid = Math.floor(Math.random() * 1000000000)
@@ -108,7 +106,8 @@ new Promise((resolve, reject) => {
       'post_shingles':         post.shingles,
       'post_date_added':       'NOW()',
       'post_source_published': post.source_published,
-      'post_location':         post.locationID
+      'post_location':         post.locationID,
+      'post_source_url':       post.source_url
     })
 
     return new Promise((resolve, reject) => {
@@ -176,7 +175,7 @@ function cleanVkText(text) {
    .replace(/<a.*?wall_post_more.*?\/a>/g, '')
    .replace(/<a href="\/away.php\?to=(.*?)&.*?"/g, '<a href="$1"')
    .replace(/<span style="display: none">/g, '')
-   .replace(/<a href="\/feed.*/g, '')
+   .replace(/<a href="\/feed.*?>(.*)<\/a>/g, '$1')
    .replace(/onclick="return mentionClick\(this, event\)"/g, '')
    .replace(/onmouseover="mentionOver\(this\)"/g, '')
    .replace(/mention_id=".*?"/g, '')
@@ -192,22 +191,24 @@ function passRegexContent(text, regs) {
 }
 
 function convertPublishedDate(str) {
-  var months = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек']
+  var months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'] //ru: ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'] 
   var date = new Date()
   date.setHours(0,0,0,0)
-  var splitted = str.split(' в ')
+  var splitted = str.split(' at ') //ru: ' в '
   if (splitted.length === 1) return
-  if (!!splitted[0].match('вчера')) {
+  if (!!splitted[0].match('yesterday')) { //ru: 'вчера'
     date = new Date(date.getTime() - 86400000)
-  } else {
+  } else if (!splitted[0].match('today')) {
     var s = splitted[0].split(' ')
     date.setDate(s[0])
     date.setMonth(months.indexOf(s[1]))
   }
 
-  var t = splitted[1].split(':')
-  date.setHours(t[0])
-  date.setMinutes(t[1])
-
-  return date
+  var time = splitted[1].split(' ')
+  var h = parseInt(time[0].split(':')[0]) + (time[1] == 'pm' ? 12 : 0) 
+  var m = time[0].split(':')[1]
+  date.setHours(h)
+  date.setMinutes(m)
+  if (typeof date.getMonth !== 'function') date = new Date()
+  return dateFormat(date, 'yyyy-mm-dd hh:mm:ss')
 }
