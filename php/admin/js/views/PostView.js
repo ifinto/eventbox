@@ -1,11 +1,16 @@
 define([
   'marionette',
+  'views/LocationAddView',
   'dateformat',
   'jquery-ui',
   'wickedpicker'
-], function(Marionette, dateformat) {
+], function(Marionette, LocationAddView, dateformat) {
   return Marionette.View.extend({
     template: '#post-item-tpl',
+
+    regions: {
+      location: '#location-add-target'
+    },
 
     ui: {
       content:     '[name="content"]',
@@ -17,8 +22,9 @@ define([
     },
 
     events: {
-      'submit form':          'onDefSubmit',
-      'click .js-submit-btn': 'onSubmit'
+      'submit form':            'onDefSubmit',
+      'click .js-submit-btn':   'onSubmit',
+      'click .js-add-location': 'onAddLocation'
     },
 
     onRender: function () {
@@ -68,22 +74,33 @@ define([
       this.updateModel()
       this.model.set({post_status: status})
       this.model.save()
-      this.model.on('sync', function () {
-        self.options.parent.render()
-      })
+      this.options.parent.renderChild()
     },
 
     onDefSubmit: function (e) {
       e.preventDefault()
     },
 
+    onAddLocation: function () {
+      var locationAddView = new LocationAddView()
+      this.showChildView('location', locationAddView)
+      locationAddView.model.on('sync', function () {
+        console.log('sync')
+      })
+    },
+
     templateContext: function () {
       console.log(this.model.get('post_location'))
       var dbDate = this.model.get('post_date')
       var splitted = dbDate && dbDate.split(' ')
+      var datePublished = this.model.get('post_source_published')
+      datePublished = dateformat(new Date(datePublished), 'mmmm dd')
+      if (datePublished == dateformat(new Date())) datePublished += ' Today'
+
       return {
         date: splitted[0],
-        time: splitted[1]
+        time: splitted[1],
+        datePublished: datePublished
       }
     }
   });

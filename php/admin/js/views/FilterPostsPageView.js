@@ -21,16 +21,11 @@ define([
     },
 
     initialize: function () {
-      this.postView = new PostView({
-        parent: this,
-        locations: new LocationsCollection()
-      })
-      this.postView.model = new PostModel()
     },
 
-	  onRender: function () {
+    onRender: function () {
       this.renderChild()
-	  },
+    },
 
     onStatusChanged: function () {
       this.renderChild()
@@ -39,9 +34,14 @@ define([
     renderChild: function () {
       var self = this
       var post_status = this.ui.post_status.val()
+      var postView = new PostView({
+        parent: this,
+        locations: new LocationsCollection()
+      })
+      postView.model = new PostModel()
 
-      this.postView.options.locations.fetch().then(function () {
-        self.postView.model.fetch({
+      postView.options.locations.fetch().then(function () {
+        postView.model.fetch({
           data: {
             post_status: post_status
           }
@@ -49,7 +49,7 @@ define([
           if (!data.ID) {
             self.showChildView('content', new PostNotFoundView)
           } else {
-            self.showChildView('content', self.postView)
+            self.showChildView('content', postView)
           }
         })
       })

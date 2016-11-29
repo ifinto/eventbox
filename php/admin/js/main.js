@@ -1,7 +1,7 @@
 require.config({
   paths: {
     app: 'app',
-    jquery: 'vendor/jquery-2.2.4',
+    jquery: 'vendor/jquery-3.1.1',
     'jquery-ui': 'vendor/jquery-ui',
     underscore: 'vendor/underscore',
     'backbone.radio': 'vendor/backbone.radio',

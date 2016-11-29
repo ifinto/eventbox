@@ -27,6 +27,7 @@
         <option value="new" selected>new</option>
         <option value="draft">draft</option>
         <option value="deleted">deleted</option>
+        <option value="publish">publish</option>
       </select>
     </div>
   </div>
@@ -37,7 +38,7 @@
 <script type="text/template" id="post-item-tpl">
   <div class="row">
     <div class="col-sm-3">
-      <p>Published on: {{post_source_published}}</p>  
+      <p>Published on: {{datePublished}}</p>  
     </div>
     <div class="col-sm-3">
         <a href="{{post_source_url}}" target="_blank"><strong>Post Source Url</strong></a>
@@ -49,9 +50,13 @@
         <div class="form-group">
           <textarea class="form-control" rows="20" name="content" placeholder="Текст">{{post_content}}</textarea>
         </div>
+        <div id="location-add-target"></div>
         <div class="row form-group">
           <div class="col-sm-4">
-            <input type="text" class="form-control" name="location" placeholder="Локация" value="{{post_location}}" id="location-input">
+            <div class="input-group">
+             <input type="text" class="form-control" name="location" placeholder="Локация" value="{{post_location}}" id="location-input">
+             <div class="input-group-addon btn-add-location js-add-location">+</div>
+           </div>   
           </div>   
         </div>
         <div class="form-group">
@@ -70,6 +75,24 @@
   </div>
 </script>
 
+<script type="text/template" id="location-add-tpl">
+  <form action="">
+    <div class="row form-group">
+      <div class="col-sm-3">
+        <input type="text" class="form-control" name="title" placeholder="title">
+      </div>
+      <div class="col-sm-3">
+        <input type="text" class="form-control" name="description" placeholder="description">
+      </div>
+      <div class="col-sm-3">
+        <input type="text" class="form-control" name="address" placeholder="address">
+      </div>
+      <div class="col-sm-3">
+        <button class="btn btn-block btn-success" type="Success">Добавить Локацию</button>
+      </div>
+    </div>
+  </form>
+</script>
 <script type="text/template" id="post-not-found-tpl">
   <h3>
     Post Not Found

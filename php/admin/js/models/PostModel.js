@@ -6,10 +6,10 @@ define([
   	
   	idAttribute: 'ID',
 
-  	// parse: function (response) {
-  	// 	var loc = response.post_location
-  	// 	response.post_location = loc == 'null' ? '' : loc
-  	// 	return response
-  	// }
+  	parse: function (response) {
+  		var loc = response.post_location
+  		response.post_location = loc == 'null' ? '' : loc
+  		return response
+  	}
   });
 });

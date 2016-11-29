@@ -82,6 +82,7 @@ new Promise((resolve, reject) => {
       })
 
       if (isUnique) return
+      if ($(el).find('.copy_quote').length > 0) return
 
       post.text = text
       posts.push(post)
@@ -191,7 +192,7 @@ function passRegexContent(text, regs) {
 }
 
 function convertPublishedDate(str) {
-  var months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'] //ru: ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'] 
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'] //ru: ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'] 
   var date = new Date()
   date.setHours(0,0,0,0)
   var splitted = str.split(' at ') //ru: ' в '
@@ -210,5 +211,5 @@ function convertPublishedDate(str) {
   date.setHours(h)
   date.setMinutes(m)
   if (typeof date.getMonth !== 'function') date = new Date()
-  return dateFormat(date, 'yyyy-mm-dd hh:mm:ss')
+  return dateFormat(date, 'yyyy-mm-dd HH:MM:ss')
 }
