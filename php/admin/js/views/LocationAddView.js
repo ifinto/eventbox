@@ -21,12 +21,10 @@ define([
 
     onSubmit: function (e) {
       e.preventDefault()
-      var x = this.model.save({
+      this.model.save({
         title:       this.ui.title.val(),
         description: this.ui.description.val(),
         address:     this.ui.address.val()
-      }).done(function () {
-        console.log('done')
       })
     }
   });
