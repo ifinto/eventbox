@@ -31,6 +31,20 @@ define([
       var self = this
       var date = this.model.get('post_date').split(' ')[0]
       var time = this.model.get('post_date').split(' ')[1]
+      this.ui.datepicker.datepicker()
+      this.ui.datepicker.datepicker('setDate', new Date(date))
+      this.ui.timepicker.wickedpicker({
+        twentyFour: true,
+        now: time
+      })
+      setTimeout(function () {
+        self.ui.timepicker.trigger('click')
+      }, 0)
+      this.renderLocationsInput()
+    },
+
+    renderLocationsInput: function () {
+      var self = this
       var locations = self.options.locations.map(function (loc) {
         return {
           label: loc.get('title'),
@@ -44,15 +58,6 @@ define([
           return false
         }
       })
-      this.ui.datepicker.datepicker()
-      this.ui.datepicker.datepicker('setDate', new Date(date))
-      this.ui.timepicker.wickedpicker({
-        twentyFour: true,
-        now: time
-      })
-      setTimeout(function () {
-        self.ui.timepicker.trigger('click')
-      }, 0)
     },
 
     updateModel: function () {
@@ -64,7 +69,6 @@ define([
         post_location: this.ui.location.val(),
         post_date:     dateformat(date, 'yyyy-mm-dd') +' '+ time
       })
-      console.log(this.model.attributes)
     },
 
     onSubmit: function (e) {
@@ -82,10 +86,13 @@ define([
     },
 
     onAddLocation: function () {
+      var self = this
       var locationAddView = new LocationAddView()
       this.showChildView('location', locationAddView)
-      locationAddView.model.on('sync', function () {
-        console.log('sync')
+      locationAddView.model.on('sync', function (model) {
+        self.options.locations.add(model)
+        self.renderLocationsInput()
+        self.ui.location.val(30)
       })
     },
 

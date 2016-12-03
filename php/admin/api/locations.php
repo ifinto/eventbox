@@ -26,9 +26,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $address     = $_POST->address;
   $title       = $_POST->title;
   $sql = "INSERT INTO locations (description, address, title) VALUES('$description', '$address', '$title')";
-  echo $sql;
   $result = $mysqli->query($sql);
   if ($result) {
+    // header( 'Content-Type: application/json' );
+    $data = array(
+      'ID' => $mysqli->insert_id
+    );
+    echo json_encode($data);
     header("HTTP/1.1 200 OK");
   }
   $mysqli->close();
