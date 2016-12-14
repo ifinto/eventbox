@@ -12,7 +12,7 @@ if ($conn->connect_error) {
 } 
 $conn->set_charset("utf8");
 
-$sql = "SELECT * FROM `wp_posts`";
+$sql = "SELECT * FROM `posts` WHERE post_status='publish'";
 $result = $conn->query($sql);
 
 $conn->close();
@@ -25,7 +25,8 @@ $conn->close();
 	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Event Box</title>
-	<link rel="stylesheet" type="text/css" href="style.css" />
+  <link href="https://fonts.googleapis.com/css?family=Noto+Serif" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="css/style.css" />
 	<script type="text/javascript" src="app.js"></script>
 </head>
 <body>

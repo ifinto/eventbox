@@ -8436,7 +8436,7 @@ a.ui-button:active,
   -webkit-box-shadow: 0px 0px 5px #666666;
   box-shadow: 0px 0px 5px #666666;
 }
-.wickedpicker {
+.timepicker {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -8444,14 +8444,13 @@ a.ui-button:active,
   -webkit-box-shadow: 0 0 0 1px rgba(14, 41, 57, 0.12), 0 2px 5px rgba(14, 41, 57, 0.44), inset 0 -1px 2px rgba(14, 41, 57, 0.15);
           box-shadow: 0 0 0 1px rgba(14, 41, 57, 0.12), 0 2px 5px rgba(14, 41, 57, 0.44), inset 0 -1px 2px rgba(14, 41, 57, 0.15);
   background: #fefefe;
-  margin: 0 auto;
   border-radius: 0.1px;
-  width: 230px;
+  width: 100%;
   height: 180px;
   font-size: 14px;
-  display: none;
+  margin: 10px 0 0;
 }
-.wickedpicker__title {
+.timepicker__title {
   background-image: -webkit-linear-gradient(top, #ffffff 0%, #f2f2f2 100%);
   background-image: -webkit-gradient(linear, left top, left bottom, from(#ffffff), to(#f2f2f2));
   background-image: linear-gradient(to bottom, #ffffff 0%, #f2f2f2 100%);
@@ -8463,7 +8462,7 @@ a.ui-button:active,
   color: #4C4C4C;
   font-size: inherit;
 }
-.wickedpicker__close {
+.timepicker__close {
   -webkit-transform: translateY(-25%);
   -ms-transform: translateY(-25%);
   transform: translateY(-25%);
@@ -8473,22 +8472,24 @@ a.ui-button:active,
   color: #34495e;
   cursor: pointer;
 }
-.wickedpicker__close:before {
+.timepicker__close:before {
   content: '\00d7';
 }
-.wickedpicker__controls {
+.timepicker__controls {
   padding: 10px 0;
   font-size: 17px;
   line-height: normal;
   margin: 0;
 }
-.wickedpicker__controls__control--hours,
-.wickedpicker__controls__control--minutes {
+.timepicker__controls__control--hours,
+.timepicker__controls__control--minutes {
   margin: 10px 0;
   display: block;
+  width: 100%;
+  text-align: center;
 }
-.wickedpicker__controls__control,
-.wickedpicker__controls__control--separator {
+.timepicker__controls__control,
+.timepicker__controls__control--separator {
   vertical-align: middle;
   display: inline-block;
   font-size: inherit;
@@ -8496,8 +8497,8 @@ a.ui-button:active,
   width: 35px;
   letter-spacing: 1.3px;
 }
-.wickedpicker__controls__control-up,
-.wickedpicker__controls__control-down {
+.timepicker__controls__control-up,
+.timepicker__controls__control-down {
   color: #34495e;
   position: relative;
   display: block;
@@ -8509,31 +8510,31 @@ a.ui-button:active,
   border-radius: 3px;
   font-size: 17px;
 }
-.wickedpicker__controls__control-up:before {
+.timepicker__controls__control-up:before {
   content: "\e113";
 }
-.wickedpicker__controls__control-down:after {
+.timepicker__controls__control-down:after {
   content: "\e114";
 }
-.wickedpicker__controls__control--separator {
+.timepicker__controls__control--separator {
   width: 5px;
 }
 .text-center,
-.wickedpicker__title,
-.wickedpicker__controls,
-.wickedpicker__controls__control,
-.wickedpicker__controls__control--separator,
-.wickedpicker__controls__control-up,
-.wickedpicker__controls__control-down {
+.timepicker__title,
+.timepicker__controls,
+.timepicker__controls__control,
+.timepicker__controls__control--separator,
+.timepicker__controls__control-up,
+.timepicker__controls__control-down {
   text-align: center;
 }
 .hover-state {
   color: #3498db;
 }
 .fontello:before,
-.wickedpicker__controls__control-up:before,
+.timepicker__controls__control-up:before,
 .fontello-after:after,
-.wickedpicker__controls__control-down:after {
+.timepicker__controls__control-down:after {
   font-family: 'Glyphicons Halflings';
   font-style: normal;
   font-weight: normal;
@@ -8554,10 +8555,10 @@ a.ui-button:active,
   position: relative;
   display: inline-block;
 }
-.clearable-picker > .hasWickedpicker {
+.clearable-picker > .hastimepicker {
   padding-right: 1em;
 }
-.clearable-picker > .hasWickedpicker::-ms-clear {
+.clearable-picker > .hastimepicker::-ms-clear {
   display: none;
 }
 .clearable-picker > [data-clear-picker] {

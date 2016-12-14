@@ -37,11 +37,8 @@
 
 <script type="text/template" id="post-item-tpl">
   <div class="row">
-    <div class="col-sm-3">
-      <p>Published on: {{datePublished}}</p>  
-    </div>
-    <div class="col-sm-3">
-        <a href="{{post_source_url}}" target="_blank"><strong>Post Source Url</strong></a>
+    <div class="col-sm-12">
+      <p>Published on: <strong>{{datePublished}}</strong> at <a href="{{post_source_url}}" target="_blank"><strong>{{sourceUrlRoot}}</strong></a> &nbsp;&nbsp;[id={{ID}}]</p>  
     </div>
   </div>
   <div class="row">
@@ -52,9 +49,10 @@
         </div>
         <div id="location-add-target"></div>
         <div class="row form-group">
-          <div class="col-sm-4">
+          <div class="col-sm-6">
             <div class="input-group">
-             <input type="text" class="form-control" name="location" placeholder="Локация" value="{{post_location}}" id="location-input">
+             <input type="text" class="form-control" placeholder="Локация" id="location-label">
+             <input type="hidden" name="location" placeholder="Локация" value="{{post_location}}">
              <div class="input-group-addon btn-add-location js-add-location">+</div>
            </div>   
           </div>   
@@ -67,9 +65,10 @@
         </div>
       </form>
     </div>
-    <div class="col-sm-4">
+    <div class="col-sm-3">
       <p>Date of event</p>
       <div id="datepicker"></div>
+      <div id="timepicker"></div>
       <input id="timepicker" class="event-timepicker">
     </div>
   </div>
@@ -93,6 +92,28 @@
     </div>
   </form>
 </script>
+
+<script type="text/template" id="timepicker-tpl">
+  <div class="timepicker">
+    <p class="timepicker__title">Timepicker
+    <ul class="timepicker__controls">
+      <li class="timepicker__controls__control">
+        <span class="timepicker__controls__control-up js-hours-up"></span>
+        <input type="text" name="hours" class="timepicker__controls__control--hours" tabindex="-1" value="{{hours}}">
+        <span class="timepicker__controls__control-down js-hours-down"></span>
+      </li>
+      <li class="timepicker__controls__control--separator">
+        <span class="timepicker__controls__control--separator-inner">:</span>
+      </li>
+      <li class="timepicker__controls__control">
+        <span class="timepicker__controls__control-up js-mins-up"></span>
+        <input type="text" name="mins" class="timepicker__controls__control--minutes" tabindex="-1" value="{{mins}}">
+        <span class="timepicker__controls__control-down js-mins-down"></span>
+      </li>
+    </ul>
+  </div>
+</script>
+
 <script type="text/template" id="post-not-found-tpl">
   <h3>
     Post Not Found

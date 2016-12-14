@@ -22,7 +22,7 @@ var mySqlConnection = mysql.createConnection({
 })
 
 var dbShingles = []
-var globalRegExps = ['[0-2]d[:.][0-5]d','сегодня','завтра']
+var globalRegExps = ['[0-2]\d[:.][0-5]\d','сегодня','завтра','открылся','открыл[аи]сь','приглаша[ею]т','когда','где']
 
 new Promise((resolve, reject) => {
   var Q = 'SELECT ID, post_shingles from posts'
@@ -39,9 +39,12 @@ new Promise((resolve, reject) => {
   })
 }).then(function (locations) {
   return new Promise((resolve, reject) => {
-    var Q = 'SELECT * from sources'
+    var Q = 'SELECT * from sources WHERE active=1'
     mySqlConnection.query(Q, (err, rows, fields) => {
       resolve(rows)
+      // resolve([
+      //   {url: 'http://vk.com/rating_kh'}
+      // ])
     })
   })
 }).mapSeries(function (source) {
@@ -61,7 +64,6 @@ new Promise((resolve, reject) => {
       var allHtml = $(el).html()
       var post = {};
       post.source_url = source.url +'?w=wall'+ $(el).attr('data-post-id')
-      console.log('post.source_url', post.source_url)
       post.title = $(el).find('.wall_post_text .mem_link').first().html()
       post.thumbs = $(el).find('.page_post_sized_thumbs a').html()
       var sourcePublished = $(el).find('.rel_date').html()
@@ -74,7 +76,8 @@ new Promise((resolve, reject) => {
         console.log('regex not passed')
         return
       }
-      text = cleanVkText(text)
+      text = cleanVkText(text, source.url)
+      if (text.match('все, завтра точно поч')) console.log(text)
       var isUnique = _.find(dbShingles, (sh) => {
         var guess = unique_text.getUniqueness(text, sh.post_shingles) > 0.5
         if (guess) console.log('is duplicate of post ID =', sh.ID)
@@ -170,9 +173,16 @@ function getVkDetails(text) {
   return details
 }
 
-function cleanVkText(text) {
-  return text.replace(/<img.*?>/g, '')
-   .replace(/<a.*?mem_link.*?\/a>/g, '')
+function cleanVkText(text, sourceUrl) {
+  switch(sourceUrl) {
+    case 'http://vk.com/kharkovgo':
+      text = text.replace(/Подробнее:<a.*/, '')
+      text = text.replace(/<a href="\/feed?section=search&amp;q=%23kharkovgo.*/, '')
+      break
+  }
+
+  text = text.replace(/<img.*?>/g, '')
+   .replace(/<a[\s\w"=\/_]*?class="mem_link".*?\/a>/g, '')
    .replace(/<a.*?wall_post_more.*?\/a>/g, '')
    .replace(/<a href="\/away.php\?to=(.*?)&.*?"/g, '<a href="$1"')
    .replace(/<span style="display: none">/g, '')
@@ -181,11 +191,15 @@ function cleanVkText(text) {
    .replace(/onmouseover="mentionOver\(this\)"/g, '')
    .replace(/mention_id=".*?"/g, '')
    .replace(/<br.*?>/g, '\n')
+   .replace(/^[\s\n]*/m, '')
+   .replace(/<\/span>$/, '')
+
+  return text
 }
 
 function passRegexContent(text, regs) {
   var found = regs.find((reg) => {
-    var regEx = new RegExp(reg)
+    var regEx = new RegExp(reg, 'i')
     return !!text.match(regEx)
   })
   return !!found
@@ -207,6 +221,7 @@ function convertPublishedDate(str) {
 
   var time = splitted[1].split(' ')
   var h = parseInt(time[0].split(':')[0]) + (time[1] == 'pm' ? 12 : 0) 
+  if (h == 24) h = 0
   var m = time[0].split(':')[1]
   date.setHours(h)
   date.setMinutes(m)
