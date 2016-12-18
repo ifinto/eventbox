@@ -8610,3 +8610,17 @@ a.ui-button:active,
   font-weight: 700;
   color: #18ad18;
 }
+.images-block {
+  margin: 40px 0 0;
+}
+.images-block ul {
+  padding: 0;
+  margin: 0;
+}
+.images-block ul li {
+  display: inline-block;
+  margin: 0 10px 10px 0;
+}
+.images-block ul li img {
+  height: 150px;
+}

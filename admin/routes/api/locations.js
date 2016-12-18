@@ -24,7 +24,7 @@ router.post('/', function(req, res, next) {
                 '${req.body.title}'
               )`
   connection.query(query, (err, rows) => {
-    res.json({ID: rows.insertId})
+    res.json({id: rows.insertId})
   })
   connection.end();
 })

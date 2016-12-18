@@ -2,17 +2,19 @@ define([
   'marionette',
   'views/LocationAddView',
   'views/TimepickerView',
+  'views/PostImagesView',
   'dateformat',
   'jquery-ui',
   'wickedpicker'
-], function(Marionette, LocationAddView, TimepickerView, dateformat) {
+], function(Marionette, LocationAddView, TimepickerView, PostImagesView, dateformat) {
   return Marionette.View.extend({
     template: '#post-item-tpl',
 
     regions: {
       location: '#location-add-target',
       timepicker_1:    '#timepicker_1',
-      timepicker_2:    '#timepicker_2'
+      timepicker_2:    '#timepicker_2',
+      post_images:     '#post_images'
     },
 
     ui: {
@@ -28,9 +30,9 @@ define([
     },
 
     events: {
-      'submit form':            'onDefSubmit',
-      'click .js-submit-btn':   'onSubmit',
-      'click .js-submit-btn':   'onSubmit',
+      'submit form':              'onDefSubmit',
+      'click .js-submit-btn':     'onSubmit',
+      'click .js-add-location':   'onAddLocation',
       'click .js-toggle-date-range': 'toggleDateRange',
       'click .js-toggle-time-range': 'toggleTimeRange'
     },
@@ -55,6 +57,9 @@ define([
       }
       
       this.renderLocationsInput()
+      this.showChildView('post_images', new PostImagesView({
+        imagesArr: this.model.get('post_images')
+      }))
     },
 
     toggleDateRange: function (e) {
@@ -87,7 +92,7 @@ define([
       var locations = self.options.locations.map(function (loc) {
         return {
           label: loc.get('title'),
-          value: loc.get('ID')
+          value: loc.get('id')
         }
       })
       var currentLocation = this.model.get('post_location')
@@ -100,9 +105,9 @@ define([
         }
       })
       if (!!currentLocation) {
-        var foundLocation = self.options.locations.findWhere({ID: currentLocation})
+        var foundLocation = self.options.locations.findWhere({id: currentLocation})
         if (foundLocation) {
-          this.ui.location.val(foundLocation.get('ID'))
+          this.ui.location.val(foundLocation.get('id'))
           this.ui.locationLabel.val(foundLocation.get('title'))
         }
       }
@@ -114,16 +119,20 @@ define([
         var d2 = this.ui.datepicker_2.datepicker('getDate')
         var date_from = dateformat(Math.min(d1, d2), 'yyyy-mm-dd')
         var date_to   = dateformat(Math.max(d1, d2), 'yyyy-mm-dd')
+      } else {
+        var d1 = this.ui.datepicker_1.datepicker('getDate')
+        var date_from = dateformat(Math.min(d1, d2), 'yyyy-mm-dd')
+        var date_to   = ''
+      }
+
+      if (this.timeRange) {
         var t1 = this.timepickerView_1.getTime()
         var t2 = this.timepickerView_2.getTime()
         var time_from = (t1 < t2 ? t1 : t2)
         var time_to   = (t1 > t2 ? t1 : t2)
       } else {
-        var d1 = this.ui.datepicker_1.datepicker('getDate')
-        var date_from = dateformat(Math.min(d1, d2), 'yyyy-mm-dd')
-        var date_to   = null
         var time_from = this.timepickerView_1.getTime()
-        var time_to   = null
+        var time_to   = ''
       }
 
       this.model.set({
@@ -144,7 +153,7 @@ define([
       this.updateModel()
       this.model.set({post_status: status})
       this.model.save().then(() => {
-        self.options.parent.renderChild()
+        self.options.postUpdated()
       })
     },
 
@@ -158,7 +167,7 @@ define([
       this.showChildView('location', locationAddView)
       locationAddView.model.on('sync', function (model) {
         self.options.locations.add(model)
-        self.model.set({post_location: model.get('ID')})
+        self.model.set({post_location: model.get('id')})
         self.renderLocationsInput()
         locationAddView.destroy()
       })

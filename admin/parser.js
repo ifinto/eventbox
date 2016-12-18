@@ -181,10 +181,14 @@ function getVkDetails(text) {
 }
 
 function cleanVkText(text, sourceUrl) {
+  // console.log(text)
+  // console.log('===========================')
+  // console.log('===========================')
+  // console.log('\n')
   switch(sourceUrl) {
     case 'http://vk.com/kharkovgo':
       text = text.replace(/Подробнее:<a.*/, '')
-      text = text.replace(/<a href="\/feed?section=search&amp;q=%23kharkovgo.*/, '')
+      text = text.replace(/<a href="\/feed\?section=search&amp;q=%23kharkovgo.*/, '')
       break
   }
 

@@ -13,46 +13,76 @@ define([
 	  },
 
     ui: {
-      post_status: '#post_status'
+      post_status: '#post_status',
+      postIdInput: '#post-id-input',
+      postIdSubmit: '#post-id-submit'
     },
 
     events: {
-      'change @ui.post_status': 'onStatusChanged'
-    },
-
-    initialize: function () {
+      'change @ui.post_status': 'onStatusChanged',
+      'click .js-prev-post': 'onPrevPost',
+      'click .js-next-post': 'onNextPost',
+      'click @ui.postIdSubmit': 'onPostIdSubmit'
     },
 
     onRender: function () {
-      this.renderChild()
+      if (!this.options.postModel.id) {
+        this.showChildView('content', new PostNotFoundView)
+      } else {
+        var postView = new PostView({
+          locations: this.options.locations,
+          postUpdated: this.postUpdated.bind(this)
+        })
+        postView.model = this.options.postModel
+        this.showChildView('content', postView)
+      }
+      this.ui.post_status.val(this.model.get('post_status'))
+    },
+
+    postUpdated: function () {
+      this.onNextPost() 
+    },
+
+    onPrevPost: function () {
+      var self = this
+      var currentId = this.options.postModel.id
+      var model = this.options.postModel = new PostModel()
+      var status = this.ui.post_status.val()
+
+      model.fetch({
+        data: {
+          before: currentId,
+          post_status: status
+        }
+      }).then(function () {
+        self.render()
+      })
+    },
+
+    onNextPost: function () {
+      var self = this
+      var currentId = this.options.postModel.id
+      var model = this.options.postModel = new PostModel()
+      var status = this.ui.post_status.val()
+
+      model.fetch({
+        data: {
+          after: currentId,
+          post_status: status
+        }
+      }).then(function () {
+        self.render()
+      })
+    },
+
+    onPostIdSubmit: function () {
+      var id = this.ui.postIdInput.val()
+      Backbone.history.navigate('/post?id=' + id, {trigger: true})
     },
 
     onStatusChanged: function () {
-      this.renderChild()
-    },
-
-    renderChild: function () {
-      var self = this
-      var post_status = this.ui.post_status.val()
-      var postView = new PostView({
-        parent: this,
-        locations: new LocationsCollection()
-      })
-      postView.model = new PostModel()
-
-      postView.options.locations.fetch().then(function () {
-        postView.model.fetch({
-          data: {
-            post_status: post_status
-          }
-        }).then(function (data) {
-          if (!data.ID) {
-            self.showChildView('content', new PostNotFoundView)
-          } else {
-            self.showChildView('content', postView)
-          }
-        })
-      })
+      val = this.ui.post_status.val()
+      Backbone.history.navigate('/post?post_status=' + val, {trigger: true})
     }
   });
 });

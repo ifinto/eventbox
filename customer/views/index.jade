@@ -1,6 +1,14 @@
 extends layout
 
 block content
-  h1= title
-  - each post in posts
-    li= post.post_content
+  .posts-container
+    - each post in posts
+      article.post-block
+        h2.post-title= post.post_title
+        .post-content
+          = post.post_content
+        ul.post-images
+          - each image in post.post_images
+            li
+              img(src=image)
+        

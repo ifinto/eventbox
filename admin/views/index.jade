@@ -10,10 +10,20 @@ block content
     .row
       .col-sm-3
         select#post_status.form-control
-          option(value='new', selected='') new
+          option(value='new') new
           option(value='draft') draft
           option(value='deleted') deleted
           option(value='published') published
+      .col-sm-3
+        button.btn.btn-default.js-prev-post Prev
+        button.btn.btn-default.js-next-post Next
+      .col-sm-4
+        
+      .col-sm-2
+        .input-group
+          input#post-id-input.form-control(type='text', placeholder='Post Id')
+          .input-group-addon.btn-add-location#post-id-submit Show
+        
     br
     .js-post-content
 
@@ -22,34 +32,32 @@ block content
       .col-sm-12
         p
           | Published on: 
-          strong {{datePublished}}
+          strong {{-datePublished}}
           |  at 
-          a(href='{{post_source_url}}', target='_blank')
-            strong {{sourceUrlRoot}}
-          |    [id={{ID}}]
+          a(href='{{-post_source_url}}', target='_blank')
+            strong {{-sourceUrlRoot}}
+          |    [id={{-id}}]
     .row
       .col-sm-8
         form(action='')
           .form-group
-            input.form-control(type='text', name='title', value='{{post_title}}', placeholder='Title')
+            input.form-control(type='text', name='title', value='{{-post_title}}', placeholder='Title')
           .form-group
-            textarea.form-control(rows='20', name='content', placeholder='Текст') {{post_content}}
+            textarea.form-control(rows='20', name='content', placeholder='Текст') {{-post_content}}
           #location-add-target
           .row.form-group
             .col-sm-6
               .input-group
                 input#location-label.form-control(type='text', placeholder='Локация')
-                input(type='hidden', name='location', placeholder='Локация', value='{{post_location}}')
+                input(type='hidden', name='location', placeholder='Локация', value='{{-post_location}}')
                 .input-group-addon.btn-add-location.js-add-location +
           .form-group.status-buttons
             button.btn.btn-success.js-submit-btn(status='published') Publish
             button.btn.btn-primary.js-submit-btn(status='draft') Draft
             button.btn.btn-primary.js-submit-btn(status='new') New
             button.btn.btn-danger.js-submit-btn(status='deleted') Delete
-        .images-block
-          //- {{ _.each(images, function(image) { }}
-          //-   img(src=image)
-          //- {{ } }}
+
+        .images-block#post_images
 
       .col-sm-3
         .sidebar-widget
@@ -83,15 +91,18 @@ block content
         ul.timepicker__controls
           li.timepicker__controls__control
             span.timepicker__controls__control-up.js-hours-up
-            input.timepicker__controls__control--hours(type='text', name='hours', tabindex='-1', value='{{hours}}')
+            input.timepicker__controls__control--hours(type='text', name='hours', tabindex='-1', value='{{-hours}}')
             span.timepicker__controls__control-down.js-hours-down
           li.timepicker__controls__control--separator
             span.timepicker__controls__control--separator-inner :
           li.timepicker__controls__control
             span.timepicker__controls__control-up.js-mins-up
-            input.timepicker__controls__control--minutes(type='text', name='mins', tabindex='-1', value='{{mins}}')
+            input.timepicker__controls__control--minutes(type='text', name='mins', tabindex='-1', value='{{-mins}}')
             span.timepicker__controls__control-down.js-mins-down
 
   script#post-not-found-tpl(type='text/template')
     h3
       | Post Not Found
+
+  script#post-image-tpl(type='text/template')
+    img(src='{{-src}}')

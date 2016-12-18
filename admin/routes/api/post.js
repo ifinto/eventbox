@@ -7,7 +7,7 @@ var router = express.Router()
 router.get('/:id', function(req, res, next) {
   var connection = mysql.createConnection(db_config)
   var postStatus = req.query.post_status
-  var query = "SELECT * FROM posts WHERE ID='" + req.params.id + "'"
+  var query = "SELECT * FROM posts WHERE id='" + req.params.id + "'"
 
   connection.query(query, (err, rows) => {
     res.json(rows[0])
@@ -16,13 +16,27 @@ router.get('/:id', function(req, res, next) {
 })
 
 router.get('/', function(req, res, next) {
+  var query = ''
   var connection = mysql.createConnection(db_config)
   var postStatus = req.query.post_status
+
   if (typeof postStatus === 'undefined') postStatus = 'new'
-  var query = "SELECT *, min(ID) FROM posts WHERE post_status='" + postStatus + "'"
+  if (typeof req.query.id !== 'undefined') {
+    var id = req.query.id
+    query = `SELECT * FROM posts WHERE id = ${id}`
+  } else if (typeof req.query.before !== 'undefined') {
+    var id = req.query.before || 10e12
+    console.log('id', id)
+    query = `SELECT *, min(id) FROM posts WHERE id < ${id} AND post_status='${postStatus}'`
+  } else if (typeof req.query.after !== 'undefined') {
+    var id = req.query.after || 0
+    query = `SELECT *, max(id) FROM posts WHERE id > ${id} AND post_status='${postStatus}'`
+  } else {
+    query = `SELECT *, min(id) FROM posts WHERE post_status='${postStatus}'`
+  }
 
   connection.query(query, (err, rows) => {
-    res.json(rows[0])
+    res.json(rows.length > 0 ? rows[0] : {})
   })
   connection.end();
 })
@@ -54,7 +68,7 @@ router.post('/', function(req, res, next) {
   connection.end();
 })
 
-router.put('/', function(req, res, next) {
+router.put('/:id', function(req, res, next) {
   var connection = mysql.createConnection(db_config)
   var post_content = mysql.escape(req.body.post_content)
   var query = `UPDATE posts SET
@@ -65,8 +79,7 @@ router.put('/', function(req, res, next) {
     post_time_to   ='${req.body.post_time_to}',
     post_location  ='${req.body.post_location}',
     post_status    ='${req.body.post_status}'
-    WHERE id='${req.body.ID}'`
-    console.log(query)
+    WHERE id='${req.body.id}'`
 
   connection.query(query, (err, rows) => {
     res.json(rows)
@@ -76,7 +89,7 @@ router.put('/', function(req, res, next) {
 
 router.delete('/', function(req, res, next) {
   var connection = mysql.createConnection(db_config)
-  var query = `UPDATE posts SET post_status='deleted' WHERE id=${req.body.ID}`
+  var query = `UPDATE posts SET post_status='deleted' WHERE id=${req.body.id}`
 
   connection.query(query, (err, rows) => {
     res.json(rows)

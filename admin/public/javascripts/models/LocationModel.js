@@ -2,8 +2,6 @@ define([
   'backbone',
 ], function(Backbone) {
   return Backbone.Model.extend({
-  	url: '/api/locations',
-  	
-  	idAttribute: 'ID'
+  	url: '/api/locations'
   });
 });

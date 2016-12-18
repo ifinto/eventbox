@@ -38,7 +38,9 @@ require([
   'app'
 ], function (app) {
   _.templateSettings = {
-    interpolate: /\{\{(.+?)\}\}/g
+    evaluate: /\{\{(.+?)\}\}/g,
+    interpolate: /\{\{=(.+?)\}\}/g,
+    escape: /\{\{-(.+?)\}\}/g
   };
   window.App = app
   window.App.start();
