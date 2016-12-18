@@ -2,7 +2,7 @@ define([
   'backbone',
 ], function(Backbone) {
   return Backbone.Model.extend({
-  	url: 'api/post',
+  	urlRoot: '/api/post',
   	
   	idAttribute: 'ID',
 

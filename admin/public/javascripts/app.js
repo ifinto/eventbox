@@ -1,13 +1,15 @@
 define([
+  'backbone',
   'marionette',
-  'views/MainView'
-], function(Marionette, MainView) {
-  return Marionette.Application.extend({
+  'Router'
+], function(Backbone, Marionette, Router) {
+  var App = Marionette.Application.extend({
     region: '#app-root',
 
     onStart: function() {
-      var mainView = new MainView()
-      this.showView(mainView)
+      this.router = new Router()
+      Backbone.history.start({pushState: true})
     }
   });
+  return new App()
 });

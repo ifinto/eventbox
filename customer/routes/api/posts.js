@@ -1,7 +1,7 @@
 var _ = require('underscore')
 var express = require('express')
 var mysql = require('mysql')
-var db_config = require('../modules/db_config')
+var db_config = require('../../modules/db_config')
 var router = express.Router()
 
 router.get('/', function(req, res, next) {
@@ -10,13 +10,9 @@ router.get('/', function(req, res, next) {
   var query = "SELECT * FROM posts WHERE post_status='published'"
 
   connection.query(query, (err, rows) => {
-    res.render('index', {
-      title: 'Index page',
-      posts: rows
-    })
+    res.json(rows[0])
   })
   connection.end();
 })
-
 
 module.exports = router;

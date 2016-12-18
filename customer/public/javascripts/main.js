@@ -8,8 +8,7 @@ require.config({
     backbone: 'vendor/backbone',
     marionette: 'vendor/backbone.marionette',
     wickedpicker: 'vendor/wickedpicker',
-    dateformat: 'vendor/dateformat',
-    promise: 'vendor/bluebird.min'
+    dateformat: 'vendor/dateformat'
   },
   shim: {
     app: {
@@ -36,10 +35,10 @@ require.config({
 
 require([
   'app'
-], function (app) {
-  _.templateSettings = {
-    interpolate: /\{\{(.+?)\}\}/g
-  };
-  window.App = app
-  window.App.start();
+], function (App) {
+  // _.templateSettings = {
+  //   interpolate: /\{\{(.+?)\}\}/g
+  // };
+  // window.App = new App();
+  // window.App.start();
 });

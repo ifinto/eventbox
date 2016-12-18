@@ -24,6 +24,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routesIndex);
+app.use('/post', routesIndex);
+app.use('/post/:id', routesIndex);
 app.use('/api/locations', routesApiLocation);
 app.use('/api/post', routesApiPost);
 

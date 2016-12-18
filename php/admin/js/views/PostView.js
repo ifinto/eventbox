@@ -115,10 +115,19 @@ define([
       }
 
       var sourceUrlRoot = this.model.get('post_source_url').split('?')[0]
+      var images
+
+      try {
+        images = JSON.parse(post.images)
+      } catch (err) {
+        console.error(err)
+        images = []
+      }
 
       return {
         datePublished: datePublished,
-        sourceUrlRoot: sourceUrlRoot
+        sourceUrlRoot: sourceUrlRoot,
+        images: images
       }
     }
   });

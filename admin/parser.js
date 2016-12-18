@@ -65,7 +65,13 @@ new Promise((resolve, reject) => {
       var post = {};
       post.source_url = source.url +'?w=wall'+ $(el).attr('data-post-id')
       post.title = $(el).find('.wall_post_text .mem_link').first().html()
-      post.thumbs = $(el).find('.page_post_sized_thumbs a').html()
+      post.images = $(el).find('.page_post_sized_thumbs a').toArray().reduce((arr, el) => {
+        var imageUrl = parseVkThumbs($(el).attr('onclick'))
+        if (!!imageUrl) arr.push(imageUrl)
+        arr.push()
+        return arr
+      }, [])
+
       var sourcePublished = $(el).find('.rel_date').html()
       if (!!sourcePublished) {
         post.source_published = convertPublishedDate(sourcePublished)
@@ -111,7 +117,8 @@ new Promise((resolve, reject) => {
       'post_date_added':       'NOW()',
       'post_source_published': post.source_published,
       'post_location':         post.locationID,
-      'post_source_url':       post.source_url
+      'post_source_url':       post.source_url,
+      'post_images':           JSON.stringify(post.images)
     })
 
     return new Promise((resolve, reject) => {
@@ -195,6 +202,18 @@ function cleanVkText(text, sourceUrl) {
    .replace(/<\/span>$/, '')
 
   return text
+}
+
+function parseVkThumbs (html) {
+  html = html.replace(/&quot;/g, '"')
+  var baseMatch = html.match(/\"base":\"(.*?)\"/)
+  var base = baseMatch && baseMatch[1]
+  if (!base) return
+  var match = html.match(/\"y_\":\[\"([\w\d\/]*)\"/)
+  if (!match) match = html.match(/\"x_\":\[\"([\w\d\/]*)\"/)
+  var photoId = match && match[1]
+  var photoUrl = photoId && base + photoId + '.jpg'
+  return photoUrl
 }
 
 function passRegexContent(text, regs) {

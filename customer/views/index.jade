@@ -2,5 +2,5 @@ extends layout
 
 block content
   h1= title
-  - each row in rows
-  	li= row.post_content
+  - each post in posts
+    li= post.post_content
