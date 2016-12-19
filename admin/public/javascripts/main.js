@@ -7,9 +7,9 @@ require.config({
     'backbone.radio': 'vendor/backbone.radio',
     backbone: 'vendor/backbone',
     marionette: 'vendor/backbone.marionette',
-    wickedpicker: 'vendor/wickedpicker',
     dateformat: 'vendor/dateformat',
-    promise: 'vendor/bluebird.min'
+    promise: 'vendor/bluebird.min',
+    tinymce: 'vendor/tinymce/dev/tinymce'
   },
   shim: {
     app: {
@@ -30,7 +30,9 @@ require.config({
     underscore: {
       exports: '_'
     },
-    wickedpicker: ['jquery']
+    tinymce: {
+      exports: 'tinymce'
+    }
   }
 });
 
@@ -42,6 +44,9 @@ require([
     interpolate: /\{\{=(.+?)\}\}/g,
     escape: /\{\{-(.+?)\}\}/g
   };
+  _.defined = function (el) {
+    return !_.isUndefined(el)
+  }
   window.App = app
   window.App.start();
 });

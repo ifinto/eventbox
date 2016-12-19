@@ -43,26 +43,32 @@ router.get('/', function(req, res, next) {
 
 router.post('/', function(req, res, next) {
   var connection = mysql.createConnection(db_config)
+  var post_content = mysql.escape(req.body.post_content)
   var query = `
     INSERT INTO posts (
       post_date_added,
-      post_source_published,
+      post_title,
       post_content,
-      post_date,
-      post_time,
+      post_date_from,
+      post_date_to,
+      post_time_from,
+      post_time_to,
       post_location,
       post_status
     ) VALUES(
-    NOW(),
-      ${req.body.post_source_published},
-      ${req.body.post_content},
-      ${req.body.post_date},
-      ${req.body.post_time},
-      ${req.body.post_location},
-      ${req.body.post_status}
+      NOW(),
+      '${req.body.post_title}',
+       ${post_content},
+      '${req.body.post_date_from}',
+      '${req.body.post_date_to}',
+      '${req.body.post_time_from}',
+      '${req.body.post_time_to}',
+      '${req.body.post_location}',
+      '${req.body.post_status}'
     )
   `
   connection.query(query, (err, rows) => {
+    if (err) console.error(err)
     res.json(rows)
   })
   connection.end();
@@ -72,6 +78,7 @@ router.put('/:id', function(req, res, next) {
   var connection = mysql.createConnection(db_config)
   var post_content = mysql.escape(req.body.post_content)
   var query = `UPDATE posts SET
+    post_title     ='${req.body.post_title}',
     post_content   = ${post_content},
     post_date_from ='${req.body.post_date_from}',
     post_date_to   ='${req.body.post_date_to}',

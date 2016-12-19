@@ -18,6 +18,21 @@ define([
   parseQueryString
 ) {
   return Marionette.Object.extend({
+    newPost: function () {
+      var postModel = new PostModel()
+      var locationsCollection = new LocationsCollection()
+
+      Promise.all([
+        locationsCollection.fetch()
+      ]).then(function () {
+        window.App.showView(new FilterPostsPageView({
+          model: new Backbone.Model(),
+          postModel: postModel,
+          locations: locationsCollection
+        }))
+      })
+    },
+
     getPost: function (query) {
       var params = parseQueryString(query)
       var post_status = (params && params.post_status) || 'new'

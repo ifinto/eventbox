@@ -22,11 +22,12 @@ define([
       'change @ui.post_status': 'onStatusChanged',
       'click .js-prev-post': 'onPrevPost',
       'click .js-next-post': 'onNextPost',
+      'click .js-new-post' : 'onNewPost',
       'click @ui.postIdSubmit': 'onPostIdSubmit'
     },
 
     onRender: function () {
-      if (!this.options.postModel.id) {
+      if (_.isNull(this.options.postModel.id)) {
         this.showChildView('content', new PostNotFoundView)
       } else {
         var postView = new PostView({
@@ -36,11 +37,17 @@ define([
         postView.model = this.options.postModel
         this.showChildView('content', postView)
       }
-      this.ui.post_status.val(this.model.get('post_status'))
+
+      var post_status = this.model.get('post_status') || 'new'
+      this.ui.post_status.val(post_status)
     },
 
     postUpdated: function () {
       this.onNextPost() 
+    },
+
+    onNewPost: function () {
+      Backbone.history.navigate('/post/new', {trigger: true})
     },
 
     onPrevPost: function () {

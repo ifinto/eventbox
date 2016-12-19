@@ -4,9 +4,9 @@ define([
   'views/TimepickerView',
   'views/PostImagesView',
   'dateformat',
-  'jquery-ui',
-  'wickedpicker'
-], function(Marionette, LocationAddView, TimepickerView, PostImagesView, dateformat) {
+  'tinymce',
+  'jquery-ui'
+], function(Marionette, LocationAddView, TimepickerView, PostImagesView, dateformat, tinymce) {
   return Marionette.View.extend({
     template: '#post-item-tpl',
 
@@ -31,6 +31,7 @@ define([
 
     events: {
       'submit form':              'onDefSubmit',
+      'click .js-save-btn':       'onSave',
       'click .js-submit-btn':     'onSubmit',
       'click .js-add-location':   'onAddLocation',
       'click .js-toggle-date-range': 'toggleDateRange',
@@ -60,6 +61,22 @@ define([
       this.showChildView('post_images', new PostImagesView({
         imagesArr: this.model.get('post_images')
       }))
+
+      setTimeout(this.renderTinymce.bind(this), 0)
+    },
+
+    renderTinymce: function () {
+      tinymce.init({
+        target: this.ui.content[0],
+        height: 400,
+        menubar: false,
+        plugins: [
+          'advlist autolink lists link image charmap print preview anchor',
+          'searchreplace visualblocks code fullscreen',
+          'insertdatetime media table contextmenu paste code'
+        ],
+        toolbar: 'undo redo | styleselect | bold italic | link image'
+      });
     },
 
     toggleDateRange: function (e) {
@@ -135,14 +152,25 @@ define([
         var time_to   = ''
       }
 
+      var post_content = tinymce.get('content').getContent()
+
       this.model.set({
         post_title:    this.ui.title.val(),
-        post_content:  this.ui.content.val(),
+        post_content:  post_content,
         post_location: this.ui.location.val(),
         post_date_from: date_from,
         post_date_to:   date_to,
         post_time_from: time_from,
         post_time_to:   time_to
+      })
+    },
+
+    onSave: function (e) {
+      var self = this
+      e.preventDefault()
+      this.updateModel()
+      this.model.save().then(() => {
+        self.options.postUpdated()
       })
     },
 
@@ -174,7 +202,8 @@ define([
     },
 
     templateContext: function () {
-      var datePublished = new Date(this.model.get('post_source_published'))
+      var post_source_published = this.model.get('post_source_published') || null
+      var datePublished = new Date(post_source_published)
       if (datePublished.getTime()) {
         datePublished = dateformat(new Date(datePublished), 'mmmm dd')
         if (datePublished == dateformat(new Date())) datePublished += ' Today'
@@ -182,12 +211,19 @@ define([
         datePublished = ''
       }
 
-      var sourceUrlRoot = this.model.get('post_source_url').split('?')[0]
+      var post_source_url = this.model.get('post_source_url')
+      var sourceUrlRoot = post_source_url ? post_source_url.split('?')[0] : ''
 
       return {
         datePublished: datePublished,
-        sourceUrlRoot: sourceUrlRoot
+        sourceUrlRoot: sourceUrlRoot,
+        post_title_class: this.model.get('post_title') === '' ? 'has-error' : '',
+        postId: this.model.id || false
       }
+    },
+
+    onDestroy: function () {
+      tinymce.remove()
     }
   });
 });

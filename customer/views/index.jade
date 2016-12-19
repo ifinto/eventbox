@@ -6,7 +6,7 @@ block content
       article.post-block
         h2.post-title= post.post_title
         .post-content
-          = post.post_content
+          != post.post_content
         ul.post-images
           - each image in post.post_images
             li

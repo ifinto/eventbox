@@ -15,10 +15,12 @@ block content
           option(value='deleted') deleted
           option(value='published') published
       .col-sm-3
-        button.btn.btn-default.js-prev-post Prev
-        button.btn.btn-default.js-next-post Next
-      .col-sm-4
-        
+        .btn-group
+          button.btn.btn-default.js-prev-post Prev
+          button.btn.btn-default.js-next-post Next
+      .col-sm-2.text-right
+        button.btn.btn-default.js-new-post New post
+      .col-sm-2.text-right
       .col-sm-2
         .input-group
           input#post-id-input.form-control(type='text', placeholder='Post Id')
@@ -28,6 +30,7 @@ block content
     .js-post-content
 
   script#post-item-tpl(type='text/template')
+    // {{ if (postId) { }}
     .row
       .col-sm-12
         p
@@ -36,14 +39,15 @@ block content
           |  at 
           a(href='{{-post_source_url}}', target='_blank')
             strong {{-sourceUrlRoot}}
-          |    [id={{-id}}]
+          |    [id={{-postId}}]
+    // {{ } }}
     .row
       .col-sm-8
         form(action='')
-          .form-group
+          .form-group(class='{{=post_title_class}}')
             input.form-control(type='text', name='title', value='{{-post_title}}', placeholder='Title')
           .form-group
-            textarea.form-control(rows='20', name='content', placeholder='Текст') {{-post_content}}
+            textarea.form-control.js-content-textarea(rows='20', name='content', placeholder='Текст') {{-post_content}}
           #location-add-target
           .row.form-group
             .col-sm-6
@@ -52,8 +56,9 @@ block content
                 input(type='hidden', name='location', placeholder='Локация', value='{{-post_location}}')
                 .input-group-addon.btn-add-location.js-add-location +
           .form-group.status-buttons
+            button.btn.btn-success.js-save-btn Save
             button.btn.btn-success.js-submit-btn(status='published') Publish
-            button.btn.btn-primary.js-submit-btn(status='draft') Draft
+            button.btn.btn-default.js-submit-btn(status='draft') Draft
             button.btn.btn-primary.js-submit-btn(status='new') New
             button.btn.btn-danger.js-submit-btn(status='deleted') Delete
 

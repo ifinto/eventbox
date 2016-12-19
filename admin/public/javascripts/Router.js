@@ -4,6 +4,7 @@ define([
 ], function (Marionette, PostController) {
   return Marionette.AppRouter.extend({
     appRoutes: {
+      'post/new'     : 'newPost',
       'post(?*query)': 'getPost'
     },
 

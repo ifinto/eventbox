@@ -22,7 +22,7 @@ var mySqlConnection = mysql.createConnection({
 })
 
 var dbShingles = []
-var globalRegExps = ['[0-2]\d[:.][0-5]\d','сегодня','завтра','открылся','открыл[аи]сь','приглаша[ею]т','когда','где']
+var globalRegExps = ['[0-2]\d[:.|][0-5]\d','сегодня','завтра','открылся','открыл[аи]сь','приглаша[ею]т','когда','где', 'приходи']
 
 new Promise((resolve, reject) => {
   var Q = 'SELECT ID, post_shingles from posts'
@@ -61,7 +61,6 @@ new Promise((resolve, reject) => {
     let $ = cheerio.load(content, {decodeEntities: false})
     var posts = []
     $('._post.post.page_block:not(.post_fixed)').each((i, el) => {
-      var allHtml = $(el).html()
       var post = {};
       post.source_url = source.url +'?w=wall'+ $(el).attr('data-post-id')
       post.title = $(el).find('.wall_post_text .mem_link').first().html()
@@ -76,20 +75,28 @@ new Promise((resolve, reject) => {
       if (!!sourcePublished) {
         post.source_published = convertPublishedDate(sourcePublished)
       }
+
       var text = $(el).find('.wall_post_text').html()
 
+        
+// console.log('******************************')
+// console.log(text, text)
+// console.log('******************************')
+
+      if (!text) {
+        console.log('.wall_post_text block not found in post')
+        return
+      }
       if (!passRegexContent(text, globalRegExps)) {
         console.log('regex not passed')
         return
       }
       text = cleanVkText(text, source.url)
-      if (text.match('все, завтра точно поч')) console.log(text)
       var isUnique = _.find(dbShingles, (sh) => {
         var guess = unique_text.getUniqueness(text, sh.post_shingles) > 0.5
         if (guess) console.log('is duplicate of post ID =', sh.ID)
         return guess
       })
-
       if (isUnique) return
       if ($(el).find('.copy_quote').length > 0) return
 
@@ -181,10 +188,6 @@ function getVkDetails(text) {
 }
 
 function cleanVkText(text, sourceUrl) {
-  // console.log(text)
-  // console.log('===========================')
-  // console.log('===========================')
-  // console.log('\n')
   switch(sourceUrl) {
     case 'http://vk.com/kharkovgo':
       text = text.replace(/Подробнее:<a.*/, '')
@@ -201,9 +204,14 @@ function cleanVkText(text, sourceUrl) {
    .replace(/onclick="return mentionClick\(this, event\)"/g, '')
    .replace(/onmouseover="mentionOver\(this\)"/g, '')
    .replace(/mention_id=".*?"/g, '')
-   .replace(/<br.*?>/g, '\n')
-   .replace(/^[\s\n]*/m, '')
+   .replace(/^\s?<br\s?\/?>\s?<br\s?\/?>/, '')
+   // .replace(/^[\s\n]*/m, '')
    .replace(/<\/span>$/, '')
+
+  console.log(text)
+  console.log('===========================')
+  console.log('===========================')
+  console.log('\n')
 
   return text
 }
